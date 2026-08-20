@@ -1,7 +1,7 @@
 """Public schemas exchanged between CLI, agents, and evaluators."""
 
 from enum import StrEnum
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -31,6 +31,16 @@ class SourceDocument(BaseModel):
     url: str | None = None
     snippet: str
     metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class CriticReview(BaseModel):
+    """Structured verification result produced by the bonus critic agent."""
+
+    citation_coverage: float = Field(ge=0, le=1)
+    invalid_citations: list[str] = Field(default_factory=list)
+    unsupported_claims: list[str] = Field(default_factory=list)
+    verdict: Literal["pass", "warn", "fail"]
+    notes: str = ""
 
 
 class BenchmarkMetrics(BaseModel):
