@@ -1,156 +1,271 @@
-# Lab 20: Multi-Agent Research System Starter
+# Lab 20: Multi-Agent Research System
 
-Starter repo cho bài lab **Multi-Agent Systems**: xây dựng hệ thống nghiên cứu gồm **Supervisor + Researcher + Analyst + Writer** và benchmark với single-agent baseline.
+## Student information
 
-> Mục tiêu của repo này là cung cấp **production-grade skeleton** để học viên phát triển code cá nhân. Các phần logic quan trọng được để ở dạng `TODO` để học viên tự triển khai.
+- **Student:** Chu Nguyễn Tuấn Anh
+- **MSSV:** 2A202601755
 
-## Learning outcomes
+Hoàn thiện bài lab **Multi-Agent Systems** với hệ thống research gồm **Supervisor + Researcher + Analyst + Writer + Critic**, LangGraph orchestration, Tavily retrieval, official offline research corpus, OpenAI Responses API, LangSmith tracing và benchmark single-agent vs multi-agent.
 
-Sau 2 giờ lab, học viên cần có thể:
+## Submission evidence
 
-1. Thiết kế role rõ ràng cho nhiều agent.
-2. Xây dựng shared state đủ thông tin cho handoff.
-3. Thêm guardrail tối thiểu: max iterations, timeout, retry/fallback, validation.
-4. Trace được luồng chạy và giải thích agent nào làm gì.
-5. Benchmark single-agent vs multi-agent theo quality, latency, cost.
+- Final verified GitHub Actions corpus run: `32363603155` / job `96408254950`
+- Verified implementation commit: `3ba21d4b6d1407f1ab50dcf481c069d70f05135a`
+- Final CI: Ruff lint pass, Ruff format pass, mypy pass, **54 tests passed**
+- Public LangSmith trace: https://smith.langchain.com/public/c30ff728-4cc9-43fa-8a7e-f086c932fd8c/r/01a01ef0-dfb2-7ea3-8569-4cea7dfe2f55?start_time=2026-08-20T11%3A31%3A37.522091Z
+- Required benchmark report: [`reports/benchmark_report.md`](reports/benchmark_report.md)
+- Trace evidence summary: [`reports/trace_evidence.md`](reports/trace_evidence.md)
+- Exit ticket: [`reports/exit_ticket.md`](reports/exit_ticket.md)
 
-## Architecture mục tiêu
+## Architecture
 
 ```text
 User Query
    |
    v
-Supervisor / Router
-   |------> Researcher Agent  -> research_notes
-   |------> Analyst Agent     -> analysis_notes
-   |------> Writer Agent      -> final_answer
+Supervisor (deterministic router)
+   |----> Researcher -> sources + research_notes
+   |----> Analyst ----> analysis_notes
+   |----> Writer -----> final_answer + citation guard
+   |----> Critic -----> independent citation/fact-check review   [BONUS]
    |
    v
-Trace + Benchmark Report
+Done -> trace + token/cost accounting + benchmark reports
 ```
 
-## Cấu trúc repo
+Mỗi agent có responsibility riêng và mọi handoff đều đi qua `ResearchState`, giúp trace/debug toàn bộ pipeline mà không phụ thuộc hidden memory giữa agent.
+
+Researcher dùng cùng một `SearchProvider` interface cho hai evidence modes:
 
 ```text
-.
-├── src/multi_agent_research_lab/
-│   ├── agents/              # Agent interfaces + skeletons
-│   ├── core/                # Config, state, schemas, errors
-│   ├── graph/               # LangGraph workflow skeleton
-│   ├── services/            # LLM, search, storage clients
-│   ├── evaluation/          # Benchmark/evaluation skeleton
-│   ├── observability/       # Logging/tracing hooks
-│   └── cli.py               # CLI entrypoint
-├── configs/                 # YAML configs for lab variants
-├── docs/                    # Lab guide, rubric, design notes
-├── tests/                   # Unit tests for skeleton behavior
-├── notebooks/               # Optional notebook entrypoint
-├── scripts/                 # Helper scripts
-├── .env.example             # Environment variables template
-├── pyproject.toml           # Python project config
-├── Dockerfile               # Containerized dev/runtime
-└── Makefile                 # Common commands
+Researcher / baseline
+        |
+        +-- SearchClient       -> Tavily live research
+        |
+        +-- CorpusSearchClient -> fixed official corpus, no web search
 ```
 
-## Quickstart
+## Rubric coverage
 
-### 1. Tạo môi trường
+| Tiêu chí | Evidence trong implementation |
+|---|---|
+| Role clarity | Supervisor, Researcher, Analyst, Writer, Critic tách nhiệm vụ rõ ràng |
+| State design | Sources, research/analysis notes, final answer, critic review, usage, trace, errors |
+| Failure guard | Max iterations, provider timeout, bounded retry, citation validation, safe-stop |
+| Benchmark | Live + fixed-corpus comparisons với quality, latency, cost, citations, failure rate |
+| Trace explanation | Local structured trace + public LangSmith trace evidence |
+| Bonus | `CriticAgent` kiểm invalid citations, unsupported claims và hallucination risk |
+| Reproducibility | Official-corpus subset được provenance-verified và dùng cùng evidence budget cho hai kiến trúc |
+
+## Setup
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\\Scripts\\activate
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -e ".[dev,llm]"
 cp .env.example .env
 ```
 
-### 2. Cấu hình API keys
-
-Mở `.env` và điền key cần thiết.
+Điền tối thiểu cho live research:
 
 ```bash
 OPENAI_API_KEY=...
-# optional
-LANGSMITH_API_KEY=...
 TAVILY_API_KEY=...
+LANGSMITH_API_KEY=...
 ```
 
-### 3. Chạy smoke test
+Corpus benchmark không gọi Tavily, nên chỉ cần OpenAI + LangSmith khi chạy qua GitHub Actions. Default model là `gpt-5.6-luna`; có thể đổi bằng `OPENAI_MODEL`.
 
-```bash
-make test
-python -m multi_agent_research_lab.cli --help
-```
+## Run
 
-### 4. Chạy baseline skeleton
+### Single-agent baseline
 
 ```bash
 python -m multi_agent_research_lab.cli baseline \
-  --query "Research GraphRAG state-of-the-art and write a 500-word summary"
+  --query "Research GraphRAG state-of-the-art and write a concise summary"
 ```
 
-Lệnh này chỉ chạy khung baseline tối giản. Học viên cần tự triển khai logic LLM thực tế trong `src/multi_agent_research_lab/services/llm_client.py`.
-
-### 5. Chạy multi-agent skeleton
+### Multi-agent workflow
 
 ```bash
 python -m multi_agent_research_lab.cli multi-agent \
-  --query "Research GraphRAG state-of-the-art and write a 500-word summary"
+  --query "Research GraphRAG state-of-the-art and write a concise summary"
 ```
 
-Mặc định lệnh sẽ báo các `TODO` cần làm. Đây là chủ đích của starter repo.
+Expected route history:
 
-## Milestones trong 2 giờ lab
+```text
+researcher -> analyst -> writer -> critic -> done
+```
 
-| Thời lượng | Milestone | File gợi ý |
-|---:|---|---|
-| 0-15' | Setup, chạy baseline skeleton | `cli.py`, `services/llm_client.py` |
-| 15-45' | Build Supervisor / router | `agents/supervisor.py`, `graph/workflow.py` |
-| 45-75' | Thêm Researcher, Analyst, Writer | `agents/*.py`, `core/state.py` |
-| 75-95' | Trace + benchmark single vs multi | `observability/tracing.py`, `evaluation/benchmark.py` |
-| 95-115' | Peer review theo rubric | `docs/peer_review_rubric.md` |
-| 115-120' | Exit ticket | `docs/lab_guide.md` |
-
-## Quy ước production trong repo
-
-- Tách rõ `agents`, `services`, `core`, `graph`, `evaluation`, `observability`.
-- Không hard-code API key trong code.
-- Tất cả input/output chính dùng Pydantic schema.
-- Có type hints, linting, formatting, unit test tối thiểu.
-- Có logging/tracing hook ngay từ đầu.
-- Không để agent chạy vô hạn: dùng `max_iterations`, `timeout_seconds`.
-- Có benchmark report thay vì chỉ demo output đẹp.
-
-## TODO chính cho học viên
-
-Tìm trong code các marker:
+### Live benchmark
 
 ```bash
-grep -R "TODO(student)" -n src tests docs
+python -m multi_agent_research_lab.cli benchmark \
+  --query "Compare single-agent and multi-agent research systems and explain when each is preferable" \
+  --output reports/benchmark_report.md
 ```
 
-Các phần học viên cần tự làm:
+### Official offline-corpus benchmark
 
-1. Implement LLM client.
-2. Implement web/search client hoặc mock search source.
-3. Implement routing decision trong Supervisor.
-4. Implement từng worker agent.
-5. Build LangGraph workflow.
-6. Thêm tracing provider thật: LangSmith, Langfuse hoặc OpenTelemetry.
-7. Viết benchmark report.
+School corpus v2 gồm 30 self-contained research topics. Repo public chỉ commit representation của ba topic benchmark đại diện (`AIAGENT-01`, `AIAGENT-12`, `AIAGENT-13`) cùng manifest/schema và provenance tại:
 
-## Deliverables
+```text
+data/offline_corpus_subset/
+```
 
-Học viên nộp:
+Để tránh binary corruption khi truyền qua GitHub connector, byte-exact topic JSON được đóng gói theo pipeline:
 
-1. GitHub repo cá nhân.
-2. Screenshot trace hoặc link trace.
-3. `reports/benchmark_report.md` so sánh single vs multi-agent.
-4. Một đoạn giải thích failure mode và cách fix.
+```text
+official JSON -> deterministic gzip (mtime=0) -> base64 ASCII -> ordered text chunks
+```
+
+Loader nối các chunk, base64-decode, gzip-decompress và xác minh SHA-256 của decoded original JSON trước khi load.
+
+Full course package không được redistribute trong repo. `PROVENANCE.json` khóa subset vào parent package bằng SHA-256:
+
+```text
+276117a25e178937bfb20b08f944450f5278fd0490a9c5cdebed364fa24658bf
+```
+
+Chạy representative suite:
+
+```bash
+python -m multi_agent_research_lab.cli corpus-benchmark \
+  --topics "AIAGENT-01,AIAGENT-12,AIAGENT-13" \
+  --source-budget 8 \
+  --output reports/corpus_benchmark_report.md \
+  --details reports/corpus_benchmark_details.json
+```
+
+Corpus mode **không dùng Tavily/browser search**. Baseline và multi-agent nhận cùng topic, cùng source budget và cùng deterministic retrieval policy. Canonical citations như `[autogen]`, `[A01]`, `[T01-SYN-A]` được giữ nguyên; evidence có `is_synthetic=true` phải được trình bày là synthetic benchmark evidence.
+
+Final measured aggregate:
+
+| Run | Avg proxy /100 | Avg citation | Avg latency (s) | Avg cost (USD) | Failure |
+|---|---:|---:|---:|---:|---:|
+| baseline | 79.0 | 37% | 46.21 | 0.0065 | 0% |
+| multi-agent | 85.2 | 33% | 143.03 | 0.0328 | 0% |
+
+Chi tiết đầy đủ nằm trong [`reports/corpus_benchmark_report.md`](reports/corpus_benchmark_report.md) và [`reports/corpus_benchmark_details.json`](reports/corpus_benchmark_details.json). Proxy là metric deterministic rubric-aligned, **không phải điểm giảng viên hoặc semantic ground truth**.
+
+## Citation and evidence guardrails
+
+- `MAX_ITERATIONS` chặn workflow lặp vô hạn.
+- `TIMEOUT_SECONDS` giới hạn OpenAI/Tavily calls.
+- `PROVIDER_MAX_RETRIES` retry có giới hạn cho lỗi transient.
+- Provider/search failure được ghi vào `ResearchState.errors`, sau đó Supervisor safe-stop.
+- Analyst giữ nguyên exact canonical source IDs từ retrieved evidence.
+- Writer chỉ cho phép citation IDs có trong retrieved sources.
+- Writer **target >=80% material-sentence citation coverage** và có tối đa một correction attempt.
+- Invalid/invented citation IDs sau correction vẫn hard-fail.
+- Nếu IDs hợp lệ nhưng coverage còn dưới target, Writer ghi quality signal và chuyển draft sang Critic thay vì giết graph.
+- Critic kiểm citation coverage, invalid citations và unsupported claims độc lập với Writer.
+- Corpus loader xác minh parent-package SHA-256 và từng committed payload hash trước khi benchmark.
+
+## Tests
+
+Default tests hoàn toàn offline: không gọi OpenAI, Tavily hoặc LangSmith.
+
+```bash
+make lint
+make test
+make typecheck
+```
+
+Final verified Actions run trên implementation commit cho kết quả:
+
+```text
+ruff check src tests              PASS
+ruff format --check src tests     PASS (50 files already formatted)
+mypy src                          PASS (33 source files)
+pytest                            PASS (54 passed)
+```
+
+Bộ test bao phủ routing, state/usage accounting, provider adapters, retries, Tavily retrieval, corpus integrity/retrieval, canonical citations, Writer correction/validation, Critic bonus, workflow end-to-end, benchmark/report, corpus evaluator/report và manual-only CI policy.
+
+## Tracing
+
+Local structured trace luôn được lưu trong `ResearchState.trace`. Khi có `LANGSMITH_API_KEY`, workflow/provider entry points được instrument bằng LangSmith.
+
+- Live project: `multi-agent-research-lab`
+- Corpus project: `multi-agent-research-lab-corpus`
+- Public submission trace: https://smith.langchain.com/public/c30ff728-4cc9-43fa-8a7e-f086c932fd8c/r/01a01ef0-dfb2-7ea3-8569-4cea7dfe2f55?start_time=2026-08-20T11%3A31%3A37.522091Z
+
+Machine-readable final corpus evidence records all three multi-agent routes as:
+
+```text
+researcher -> analyst -> writer -> critic -> done
+```
+
+with `errors=[]`, zero invalid citations, and `failure_rate=0%`.
+
+## GitHub Actions — manual only
+
+Workflow `.github/workflows/ci.yml` chỉ dùng:
+
+```yaml
+on:
+  workflow_dispatch:
+```
+
+Không có trigger `push` hoặc `pull_request`.
+
+Manual modes:
+
+- `offline`: install + Ruff lint/format + mypy + pytest.
+- `live`: offline gate, then Tavily/OpenAI benchmark + LangSmith tracing.
+- `corpus`: offline gate, verify corpus provenance, run AIAGENT-01/12/13 with fixed corpus + OpenAI + LangSmith, upload Markdown + JSON evidence.
+
+## Submission artefacts
+
+1. **GitHub repo** — completed implementation; `make lint` + `make test` equivalent gates pass; `StudentTodoError` is not used by the main execution path.
+2. **Trace evidence** — public LangSmith trace above and [`reports/trace_evidence.md`](reports/trace_evidence.md).
+3. **`reports/benchmark_report.md`** — live and official-corpus single vs multi-agent metrics plus the actual failure mode and implemented fix.
+4. **Exit ticket** — answered in [`reports/exit_ticket.md`](reports/exit_ticket.md) and mirrored in `docs/lab_guide.md`.
+
+## Project structure
+
+```text
+src/multi_agent_research_lab/
+├── agents/
+│   ├── supervisor.py
+│   ├── researcher.py
+│   ├── analyst.py
+│   ├── writer.py
+│   └── critic.py
+├── core/
+├── graph/
+├── services/
+│   ├── search_client.py
+│   └── corpus_client.py
+├── evaluation/
+│   ├── benchmark.py
+│   ├── corpus.py
+│   └── corpus_report.py
+├── observability/
+└── cli.py
+
+data/
+└── offline_corpus_subset/
+    ├── PROVENANCE.json
+    ├── README.md
+    ├── SCHEMA.json
+    ├── manifest.csv
+    └── topics/
+        ├── 01_...json.gz.b64.part01
+        ├── 01_...json.gz.b64.part02
+        ├── 12_...json.gz.b64.part01
+        ├── 12_...json.gz.b64.part02
+        ├── 13_...json.gz.b64.part01
+        └── 13_...json.gz.b64.part02
+```
 
 ## References
 
-- Anthropic: Building effective agents — https://www.anthropic.com/engineering/building-effective-agents
-- OpenAI Agents SDK orchestration/handoffs — https://developers.openai.com/api/docs/guides/agents/orchestration
-- LangGraph concepts — https://langchain-ai.github.io/langgraph/concepts/
-- LangSmith tracing — https://docs.smith.langchain.com/
-- Langfuse tracing — https://langfuse.com/docs
+- Anthropic: Building effective agents
+- OpenAI API model/orchestration documentation
+- LangGraph documentation
+- LangSmith tracing documentation
+- Tavily Search API documentation
+- VinUniversity AI Agent Offline Research Corpus Benchmark v2 (provided course asset)

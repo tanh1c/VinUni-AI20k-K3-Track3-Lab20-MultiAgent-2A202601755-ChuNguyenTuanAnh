@@ -1,13 +1,15 @@
-"""Shared state for the multi-agent workflow.
-
-Students should extend this file when adding new agents, outputs, or evaluation metrics.
-"""
+"""Shared state for the multi-agent workflow."""
 
 from typing import Any
 
 from pydantic import BaseModel, Field
 
-from multi_agent_research_lab.core.schemas import AgentResult, ResearchQuery, SourceDocument
+from multi_agent_research_lab.core.schemas import (
+    AgentResult,
+    CriticReview,
+    ResearchQuery,
+    SourceDocument,
+)
 
 
 class ResearchState(BaseModel):
@@ -21,6 +23,11 @@ class ResearchState(BaseModel):
     research_notes: str | None = None
     analysis_notes: str | None = None
     final_answer: str | None = None
+    critic_review: CriticReview | None = None
+
+    input_tokens: int = 0
+    output_tokens: int = 0
+    estimated_cost_usd: float = 0.0
 
     agent_results: list[AgentResult] = Field(default_factory=list)
     trace: list[dict[str, Any]] = Field(default_factory=list)
@@ -32,3 +39,14 @@ class ResearchState(BaseModel):
 
     def add_trace_event(self, name: str, payload: dict[str, Any]) -> None:
         self.trace.append({"name": name, "payload": payload})
+
+    def add_usage(
+        self,
+        *,
+        input_tokens: int | None = None,
+        output_tokens: int | None = None,
+        cost_usd: float | None = None,
+    ) -> None:
+        self.input_tokens += input_tokens or 0
+        self.output_tokens += output_tokens or 0
+        self.estimated_cost_usd += cost_usd or 0.0

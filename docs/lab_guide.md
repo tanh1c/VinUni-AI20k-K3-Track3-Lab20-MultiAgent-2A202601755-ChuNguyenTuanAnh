@@ -75,7 +75,7 @@ Benchmark tối thiểu:
 
 Triệu chứng: khi implement `SearchClient` (hoặc bất kỳ HTTPS call nào) trên macOS, bạn có thể gặp lỗi kiểu:
 
-```
+```text
 ssl.SSLCertVerificationError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed:
 unable to get local issuer certificate
 ```
@@ -84,26 +84,15 @@ Nguyên nhân: Python cài từ python.org trên macOS **không dùng** certific
 
 Cách khắc phục (chọn 1 trong 3):
 
-1. **Chạy script cài certificate đi kèm Python** (nhanh nhất):
+1. Chạy script cài certificate đi kèm Python:
 
    ```bash
    /Applications/Python\ 3.12/Install\ Certificates.command
    ```
 
-   (thay `3.12` bằng version Python của bạn)
+2. Dùng `certifi` trong code.
 
-2. **Dùng `certifi` trong code** — thêm `certifi` vào dependencies, rồi tạo SSL context khi gọi HTTPS:
-
-   ```python
-   import certifi
-   import ssl
-   from urllib.request import urlopen
-
-   ssl_context = ssl.create_default_context(cafile=certifi.where())
-   urlopen(request, timeout=timeout, context=ssl_context)
-   ```
-
-3. **Set biến môi trường** trỏ tới CA bundle của certifi (không cần đổi code):
+3. Set biến môi trường trỏ tới CA bundle của certifi:
 
    ```bash
    export SSL_CERT_FILE=$(python -m certifi)
@@ -115,3 +104,15 @@ Mỗi nhóm trả lời 2 câu:
 
 1. Case nào nên dùng multi-agent? Vì sao?
 2. Case nào không nên dùng multi-agent? Vì sao?
+
+### Submitted answers — Chu Nguyễn Tuấn Anh (2A202601755)
+
+**1. Khi nào nên dùng multi-agent? Vì sao?**
+
+Nên dùng multi-agent khi bài toán có nhiều giai đoạn khác nhau về trách nhiệm và tiêu chí kiểm chứng, ví dụ nghiên cứu cần tìm nguồn, phân tích bằng chứng, tổng hợp câu trả lời và fact-check độc lập. Việc tách Researcher, Analyst, Writer và Critic giúp mỗi bước có input/output rõ ràng, dễ trace, dễ đánh giá failure mode và cho phép thêm guardrail riêng. Lợi ích này đáng với chi phí/latency tăng thêm khi chất lượng bằng chứng và khả năng kiểm chứng quan trọng.
+
+**2. Khi nào không nên dùng multi-agent? Vì sao?**
+
+Không nên dùng multi-agent cho câu hỏi đơn giản, tác vụ latency-sensitive hoặc trường hợp một prompt + một tool call đã đủ. Khi đó orchestration, nhiều lượt LLM và handoff chỉ tăng token cost, latency và số điểm có thể lỗi mà không tạo thêm chất lượng tương xứng. Single-agent là lựa chọn tốt hơn nếu decomposition không tạo ra trách nhiệm độc lập hoặc không có intermediate artifact cần kiểm tra.
+
+Bản riêng để grader dễ mở: [`../reports/exit_ticket.md`](../reports/exit_ticket.md).

@@ -11,6 +11,7 @@ on:
         options:
           - offline
           - live
+          - corpus
 
 permissions:
   contents: read
@@ -82,5 +83,53 @@ jobs:
         with:
           name: lab20-benchmark-report
           path: reports/benchmark_report.md
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Validate corpus secrets and provenance
+        if: ${{ inputs.mode == 'corpus' }}
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          LANGSMITH_API_KEY: ${{ secrets.LANGSMITH_API_KEY }}
+        run: |
+          test -n "$OPENAI_API_KEY" || { echo "OPENAI_API_KEY is missing"; exit 1; }
+          test -n "$LANGSMITH_API_KEY" || { echo "LANGSMITH_API_KEY is missing"; exit 1; }
+          python - <<'PY'
+          from pathlib import Path
+          from multi_agent_research_lab.services.corpus_client import CorpusSearchClient
+
+          client = CorpusSearchClient(
+              Path("data/offline_corpus_subset"),
+              topic_id="AIAGENT-01",
+          )
+          print(f"Verified official parent corpus SHA-256: {client.corpus_sha256}")
+          PY
+
+      - name: Generate official corpus benchmark
+        if: ${{ inputs.mode == 'corpus' }}
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          LANGSMITH_API_KEY: ${{ secrets.LANGSMITH_API_KEY }}
+          LANGSMITH_TRACING: "true"
+          LANGSMITH_PROJECT: multi-agent-research-lab-corpus
+          OPENAI_MODEL: gpt-5.6-luna
+          MAX_ITERATIONS: "6"
+          TIMEOUT_SECONDS: "60"
+        run: |
+          python -m multi_agent_research_lab.cli corpus-benchmark \
+            --topics "AIAGENT-01,AIAGENT-12,AIAGENT-13" \
+            --source-budget 8 \
+            --output reports/corpus_benchmark_report.md \
+            --details reports/corpus_benchmark_details.json
+          cat reports/corpus_benchmark_report.md
+
+      - name: Upload official corpus benchmark
+        if: ${{ inputs.mode == 'corpus' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: lab20-official-corpus-benchmark
+          path: |
+            reports/corpus_benchmark_report.md
+            reports/corpus_benchmark_details.json
           if-no-files-found: error
           retention-days: 7

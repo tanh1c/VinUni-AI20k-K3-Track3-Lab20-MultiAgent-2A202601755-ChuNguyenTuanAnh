@@ -1,0 +1,26 @@
+{
+  "source_package": "ai_agent_offline_research_corpus_30_topics_v2.zip",
+  "source_zip_sha256": "276117a25e178937bfb20b08f944450f5278fd0490a9c5cdebed364fa24658bf",
+  "representation": "chunked-base64-gzip-byte-exact-topic-json",
+  "topic_ids": [
+    "AIAGENT-01",
+    "AIAGENT-12",
+    "AIAGENT-13"
+  ],
+  "file_sha256": {
+    "README.md": "5305b83539bcf2cd651c3f3d12f9c04b467393d079ed22643e15fa0b1f49e755",
+    "SCHEMA.json": "23a7a6949d630db6a6890a115a46efcf35e0c0aa1955fc48bffb0f935b54a6d1",
+    "manifest.csv": "bb35f8d7a89e2e1ad59395ef290a7e6f6abe1c0b38ea9b203e0064d711b2507d",
+    "topics/01_single_agent_vs_multi_agent_architectures_for_complex_research_tasks.json.gz.b64.part01": "00d967f2b2f86d6ea0e57147b2a51a1fcbe07b667512e99d0f33867a3adb2caa",
+    "topics/01_single_agent_vs_multi_agent_architectures_for_complex_research_tasks.json.gz.b64.part02": "59524b7850a639d4abf00197edf4fd4f558dc06ad73fdaa011e9ab47d167e863",
+    "topics/12_critic_and_verifier_agents_for_research_report_quality.json.gz.b64.part01": "76b64a9952ceeab5061695d063971fe8abd0f9d6ac3ea2538f8e91104504669f",
+    "topics/12_critic_and_verifier_agents_for_research_report_quality.json.gz.b64.part02": "97c7b78daae18f14c1c7dde8d22f92b2ddb47963b112ff688121bf76e822d81f",
+    "topics/13_cascading_hallucinations_in_multi_agent_pipelines.json.gz.b64.part01": "cebfe533c3646f7a1d43a15e62a15662f6a05bcd85cb32c7dadf5f0fbe340e96",
+    "topics/13_cascading_hallucinations_in_multi_agent_pipelines.json.gz.b64.part02": "47f3312e5a402aa4cf1aa688e7da23db75e383e14ce325c67ac745aa28cb74c6"
+  },
+  "decoded_topic_sha256": {
+    "topics/01_single_agent_vs_multi_agent_architectures_for_complex_research_tasks.json": "a3553d759503660c1f6795e937289b112862de1983807d6879565113770de602",
+    "topics/12_critic_and_verifier_agents_for_research_report_quality.json": "1a8477b062fb845f1bb5cff471f4a9c931654491b75cf22a25768e94f49394cb",
+    "topics/13_cascading_hallucinations_in_multi_agent_pipelines.json": "df2d7055774931bc0912d466e02cf98d46c18023085fbb61bf72d50e9e0a57ea"
+  }
+}
