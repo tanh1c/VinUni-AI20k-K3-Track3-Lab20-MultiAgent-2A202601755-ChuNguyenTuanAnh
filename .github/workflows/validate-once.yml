@@ -1,0 +1,72 @@
+name: Lab20 One-Shot Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    if: ${{ github.head_ref == 'lab20-validation-once' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -e ".[dev,llm]"
+
+      - name: Lint
+        run: ruff check src tests
+
+      - name: Format check
+        run: ruff format --check src tests
+
+      - name: Type check
+        run: mypy src
+
+      - name: Unit tests
+        run: pytest
+
+      - name: Validate secrets
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+          LANGSMITH_API_KEY: ${{ secrets.LANGSMITH_API_KEY }}
+        run: |
+          test -n "$OPENAI_API_KEY" || { echo "OPENAI_API_KEY is missing"; exit 1; }
+          test -n "$TAVILY_API_KEY" || { echo "TAVILY_API_KEY is missing"; exit 1; }
+          test -n "$LANGSMITH_API_KEY" || { echo "LANGSMITH_API_KEY is missing"; exit 1; }
+
+      - name: Live benchmark
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+          LANGSMITH_API_KEY: ${{ secrets.LANGSMITH_API_KEY }}
+          LANGSMITH_TRACING: "true"
+          LANGSMITH_PROJECT: multi-agent-research-lab
+          OPENAI_MODEL: gpt-5.6-luna
+          MAX_ITERATIONS: "6"
+          TIMEOUT_SECONDS: "60"
+        run: |
+          python -m multi_agent_research_lab.cli benchmark \
+            --query "Compare single-agent and multi-agent research systems and explain when each is preferable" \
+            --output reports/benchmark_report.md
+          cat reports/benchmark_report.md
+
+      - name: Upload benchmark report
+        uses: actions/upload-artifact@v4
+        with:
+          name: lab20-benchmark-report
+          path: reports/benchmark_report.md
+          if-no-files-found: error
+          retention-days: 7
