@@ -1,6 +1,6 @@
 """Application configuration.
 
-Keep config small and explicit. Do not read environment variables directly in agents.
+Keep provider credentials and runtime guardrails centralized so agents remain testable.
 """
 
 from functools import lru_cache
@@ -18,17 +18,34 @@ class Settings(BaseSettings):
     log_level: str = Field(default="INFO", validation_alias="LOG_LEVEL")
 
     openai_api_key: str | None = Field(default=None, validation_alias="OPENAI_API_KEY")
-    openai_model: str = Field(default="gpt-4o-mini", validation_alias="OPENAI_MODEL")
+    openai_model: str = Field(default="gpt-5.6-luna", validation_alias="OPENAI_MODEL")
+    openai_input_cost_per_1m: float | None = Field(
+        default=None,
+        ge=0,
+        validation_alias="OPENAI_INPUT_COST_PER_1M",
+    )
+    openai_output_cost_per_1m: float | None = Field(
+        default=None,
+        ge=0,
+        validation_alias="OPENAI_OUTPUT_COST_PER_1M",
+    )
+    provider_max_retries: int = Field(
+        default=3,
+        ge=1,
+        le=5,
+        validation_alias="PROVIDER_MAX_RETRIES",
+    )
 
     langsmith_api_key: str | None = Field(default=None, validation_alias="LANGSMITH_API_KEY")
     langsmith_project: str = Field(
-        default="multi-agent-research-lab", validation_alias="LANGSMITH_PROJECT"
+        default="multi-agent-research-lab",
+        validation_alias="LANGSMITH_PROJECT",
     )
-
     langfuse_public_key: str | None = Field(default=None, validation_alias="LANGFUSE_PUBLIC_KEY")
     langfuse_secret_key: str | None = Field(default=None, validation_alias="LANGFUSE_SECRET_KEY")
     langfuse_host: str = Field(
-        default="https://cloud.langfuse.com", validation_alias="LANGFUSE_HOST"
+        default="https://cloud.langfuse.com",
+        validation_alias="LANGFUSE_HOST",
     )
 
     tavily_api_key: str | None = Field(default=None, validation_alias="TAVILY_API_KEY")
@@ -39,6 +56,6 @@ class Settings(BaseSettings):
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
-    """Return cached settings instance."""
+    """Return a cached settings instance."""
 
     return Settings()

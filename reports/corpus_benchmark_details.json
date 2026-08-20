@@ -1,0 +1,232 @@
+{
+  "topic_ids": [
+    "AIAGENT-01",
+    "AIAGENT-12",
+    "AIAGENT-13"
+  ],
+  "corpus_sha256": "276117a25e178937bfb20b08f944450f5278fd0490a9c5cdebed364fa24658bf",
+  "runs": [
+    {
+      "metrics": {
+        "topic_id": "AIAGENT-01",
+        "run_name": "baseline",
+        "latency_seconds": 48.678366302000086,
+        "estimated_cost_usd": 0.0066587999999999994,
+        "failure_rate": 0.0,
+        "citation_coverage": 0.4556213017751479,
+        "invalid_citation_count": 0,
+        "invalid_citation_rate": 0.0,
+        "distinct_source_count": 8,
+        "public_source_count": 6,
+        "synthetic_source_count": 2,
+        "synthetic_disclosure": true,
+        "required_section_coverage": 1.0,
+        "meets_source_targets": true,
+        "counterargument_present": true,
+        "gold_coverage": 0.7824096225412017,
+        "rubric_proxy_score": 80.18,
+        "notes": "rubric-aligned deterministic proxy; not a teacher grade or semantic ground truth"
+      },
+      "source_ids": [
+        "gaia",
+        "agentbench",
+        "anthropic_agents",
+        "autogen",
+        "llm_agents_blog",
+        "metagpt",
+        "T01-SYN-B",
+        "T01-SYN-A"
+      ],
+      "route_history": [],
+      "errors": []
+    },
+    {
+      "metrics": {
+        "topic_id": "AIAGENT-01",
+        "run_name": "multi-agent",
+        "latency_seconds": 144.39885584699994,
+        "estimated_cost_usd": 0.0337532,
+        "failure_rate": 0.0,
+        "citation_coverage": 0.35795454545454547,
+        "invalid_citation_count": 0,
+        "invalid_citation_rate": 0.0,
+        "distinct_source_count": 8,
+        "public_source_count": 6,
+        "synthetic_source_count": 2,
+        "synthetic_disclosure": true,
+        "required_section_coverage": 0.8,
+        "meets_source_targets": true,
+        "counterargument_present": true,
+        "gold_coverage": 0.7671318447634238,
+        "rubric_proxy_score": 85.89,
+        "notes": "rubric-aligned deterministic proxy; not a teacher grade or semantic ground truth"
+      },
+      "source_ids": [
+        "gaia",
+        "agentbench",
+        "anthropic_agents",
+        "autogen",
+        "llm_agents_blog",
+        "metagpt",
+        "T01-SYN-B",
+        "T01-SYN-A"
+      ],
+      "route_history": [
+        "researcher",
+        "analyst",
+        "writer",
+        "critic",
+        "done"
+      ],
+      "errors": []
+    },
+    {
+      "metrics": {
+        "topic_id": "AIAGENT-12",
+        "run_name": "baseline",
+        "latency_seconds": 52.181792232999896,
+        "estimated_cost_usd": 0.0067713999999999995,
+        "failure_rate": 0.0,
+        "citation_coverage": 0.24279835390946503,
+        "invalid_citation_count": 0,
+        "invalid_citation_rate": 0.0,
+        "distinct_source_count": 8,
+        "public_source_count": 6,
+        "synthetic_source_count": 2,
+        "synthetic_disclosure": true,
+        "required_section_coverage": 1.0,
+        "meets_source_targets": true,
+        "counterargument_present": true,
+        "gold_coverage": 0.7961722488038279,
+        "rubric_proxy_score": 78.31,
+        "notes": "rubric-aligned deterministic proxy; not a teacher grade or semantic ground truth"
+      },
+      "source_ids": [
+        "react",
+        "gaia",
+        "agentbench",
+        "swebench",
+        "anthropic_agents",
+        "reflexion",
+        "T12-SYN-B",
+        "T12-SYN-C"
+      ],
+      "route_history": [],
+      "errors": []
+    },
+    {
+      "metrics": {
+        "topic_id": "AIAGENT-12",
+        "run_name": "multi-agent",
+        "latency_seconds": 140.0216539500002,
+        "estimated_cost_usd": 0.0313858,
+        "failure_rate": 0.0,
+        "citation_coverage": 0.20987654320987653,
+        "invalid_citation_count": 0,
+        "invalid_citation_rate": 0.0,
+        "distinct_source_count": 8,
+        "public_source_count": 6,
+        "synthetic_source_count": 2,
+        "synthetic_disclosure": true,
+        "required_section_coverage": 0.8,
+        "meets_source_targets": true,
+        "counterargument_present": true,
+        "gold_coverage": 0.7285951621477937,
+        "rubric_proxy_score": 83.63,
+        "notes": "rubric-aligned deterministic proxy; not a teacher grade or semantic ground truth"
+      },
+      "source_ids": [
+        "react",
+        "gaia",
+        "agentbench",
+        "swebench",
+        "anthropic_agents",
+        "reflexion",
+        "T12-SYN-B",
+        "T12-SYN-C"
+      ],
+      "route_history": [
+        "researcher",
+        "analyst",
+        "writer",
+        "critic",
+        "done"
+      ],
+      "errors": []
+    },
+    {
+      "metrics": {
+        "topic_id": "AIAGENT-13",
+        "run_name": "baseline",
+        "latency_seconds": 37.78325517799999,
+        "estimated_cost_usd": 0.005963,
+        "failure_rate": 0.0,
+        "citation_coverage": 0.40555555555555556,
+        "invalid_citation_count": 0,
+        "invalid_citation_rate": 0.0,
+        "distinct_source_count": 8,
+        "public_source_count": 6,
+        "synthetic_source_count": 2,
+        "synthetic_disclosure": true,
+        "required_section_coverage": 1.0,
+        "meets_source_targets": true,
+        "counterargument_present": true,
+        "gold_coverage": 0.7168560606060607,
+        "rubric_proxy_score": 78.36,
+        "notes": "rubric-aligned deterministic proxy; not a teacher grade or semantic ground truth"
+      },
+      "source_ids": [
+        "react",
+        "nist_genai",
+        "agentbench",
+        "anthropic_agents",
+        "metagpt",
+        "owasp_llm",
+        "T13-SYN-B",
+        "T13-SYN-A"
+      ],
+      "route_history": [],
+      "errors": []
+    },
+    {
+      "metrics": {
+        "topic_id": "AIAGENT-13",
+        "run_name": "multi-agent",
+        "latency_seconds": 144.67243181499998,
+        "estimated_cost_usd": 0.0331328,
+        "failure_rate": 0.0,
+        "citation_coverage": 0.43558282208588955,
+        "invalid_citation_count": 0,
+        "invalid_citation_rate": 0.0,
+        "distinct_source_count": 8,
+        "public_source_count": 6,
+        "synthetic_source_count": 2,
+        "synthetic_disclosure": true,
+        "required_section_coverage": 0.8,
+        "meets_source_targets": true,
+        "counterargument_present": true,
+        "gold_coverage": 0.7404671717171718,
+        "rubric_proxy_score": 86.14,
+        "notes": "rubric-aligned deterministic proxy; not a teacher grade or semantic ground truth"
+      },
+      "source_ids": [
+        "react",
+        "nist_genai",
+        "agentbench",
+        "anthropic_agents",
+        "metagpt",
+        "owasp_llm",
+        "T13-SYN-B",
+        "T13-SYN-A"
+      ],
+      "route_history": [
+        "researcher",
+        "analyst",
+        "writer",
+        "critic",
+        "done"
+      ],
+      "errors": []
+    }
+  ]
+}
